@@ -1,0 +1,63 @@
+version: "3.8"
+   
+services:
+    django:
+        build: .
+        container_name: django
+        command: python manage.py runserver 0.0.0.0:8000
+        volumes:
+            - .:/usr/src/app/
+        ports:
+            - "8000:8000"
+        environment:
+            - DEBUG=1
+            - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+            - CELERY_BROKER=redis://redis:6379/0
+            - CELERY_BACKEND=redis://redis:6379/0
+        depends_on:
+            - pgdb
+            - redis
+    
+    nginx:
+        image: nginx:alpine
+        volumes:
+            - ./delay-requests-front/public:/etc/nginx/templates
+            - ./nginx/sites/front.vhost:/etc/nginx/conf.d/front.vhost
+            - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+        ports:
+            - 88:80
+            - 443:443
+    celery:
+        build: .
+        command: celery -A core worker -l INFO
+        volumes:
+            - .:/usr/src/app
+        environment:
+            - DEBUG=1
+            - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+            - CELERY_BROKER=redis://redis:6379/0
+            - CELERY_BACKEND=redis://redis:6379/0
+        depends_on:
+            - django
+            - redis
+    pgdb:
+        image: postgres
+        container_name: pgdb
+        environment:
+            - POSTGRES_DB=postgres
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+        volumes:
+            - pgdata:/var/lib/postgresql/data/
+    redis:
+        image: "redis:alpine"
+    
+    dummy-server:
+        image: python:3-alpine
+        command: python3 -m http.server 
+        ports:
+            - 90:8000
+        
+volumes:
+    pgdata:
+
