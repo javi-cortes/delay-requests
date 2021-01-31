@@ -16,13 +16,13 @@ docker-compose up
 And you're ready to use it
 
 Several URLS:
-Django-admin:
-    localhost:8000
-Svelte APP:
-    localhost:88
++ Django-admin:
+++    localhost:8000
++ Svelte APP:
+++    localhost:88
 
-Custom Dummy http server:
-    localhsot:90
++ Custom Dummy http server:
+++    localhsot:90
 
 
 
